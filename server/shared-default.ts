@@ -2,9 +2,8 @@ import { BlobNotFoundError, BlobPreconditionFailedError, get, head, put } from '
 import { createSharedDefaultHandler } from './shared-default-handler';
 import { PresetConflictError } from './preset-library';
 import { validateSharedSettings } from './shared-default-validation';
-const pathname = 'node-beam/shared-default.json';
-export default createSharedDefaultHandler({
-  validate: validateSharedSettings,
+function handlerFor(pathname: string) { return createSharedDefaultHandler({
+  validate: value => {const parsed=validateSharedSettings(value);return parsed && (parsed.values["studio.tool"]??"beam")===(pathname.startsWith("fluid-tooltip/")?"fluid":"beam") ? parsed : null;},
   storage: {
     async read() {
       // Read the mutation API's version tag before the uncached body. A later change
@@ -25,4 +24,7 @@ export default createSharedDefaultHandler({
       }
     },
   },
-});
+ }); }
+const beam=handlerFor('node-beam/shared-default.json');
+const fluid=handlerFor('fluid-tooltip/shared-default.json');
+export default function handler(...args: Parameters<typeof beam>){const [req]=args;return new URL(req.url??'/', 'https://local').searchParams.get('tool')==='fluid'?fluid(...args):beam(...args);}

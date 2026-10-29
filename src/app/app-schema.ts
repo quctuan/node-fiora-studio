@@ -2,7 +2,7 @@ import { defineToolcraft, timelineModule } from "@/toolcraft/runtime";
 
 import appDefaults from "./app-defaults.json" with { type: "json" };
 import { appIdentity } from "./app-identity";
-import { beamSections } from "./beam-schema";
+import { studioSections } from "./studio-schema";
 import { referenceTransportSeconds } from "./beam-reference";
 
 export const appSchema = defineToolcraft({
@@ -17,10 +17,10 @@ export const appSchema = defineToolcraft({
       sizing: { mode: "editable-output" },
     },
     identity: appIdentity,
-    settingsTransfer: { enabled: true, fileName: "node-beam-preset.json" },
+    settingsTransfer: { enabled: true, fileName: "effect-preset.json" },
     panels: {
       controls: {
-        sections: beamSections,
+        sections: studioSections,
         title: "Node Beam Studio",
       },
     },

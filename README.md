@@ -27,7 +27,7 @@ Kéo slider sẽ cập nhật preview ngay; bấm giá trị cạnh slider để
 
 ## Lưu và bàn giao
 
-Workspace tự lưu ở trình duyệt. **Import Settings / Export Settings** cố định ở đáy panel, luôn hiện khi cuộn các thông số. **Export Settings** tải file **node-beam-preset.json**. File JSON giữ màu và gradient tùy chỉnh, shape/tỉ lệ/kích thước node, chuyển động/tốc độ/nhịp, độ dày border, spread/strength/softness, Background, kích thước canvas và thời điểm/duration của timeline. **Import Settings** nạp preset vào editor, kể cả trên trình duyệt hoặc bản Vercel khác. Import giữ frame đã lưu ở trạng thái Pause; bấm Play để tiếp tục xem chuyển động. Preset cũ có các tùy chọn xuất ảnh vẫn nạp được.
+Workspace tự lưu ở trình duyệt. **Import Settings / Export Settings** cố định ở đáy panel, luôn hiện khi cuộn các thông số. **Export Settings** tải file **effect-preset.json**. File JSON giữ màu và gradient tùy chỉnh, shape/tỉ lệ/kích thước node, chuyển động/tốc độ/nhịp, độ dày border, spread/strength/softness, Background, kích thước canvas và thời điểm/duration của timeline. **Import Settings** nạp preset vào editor, kể cả trên trình duyệt hoặc bản Vercel khác. Import giữ frame đã lưu ở trạng thái Pause; bấm Play để tiếp tục xem chuyển động. Preset cũ có các tùy chọn xuất ảnh vẫn nạp được.
 
 **Save State as Default** ghi cấu hình mặc định cho dự án local, nên dùng khi đã chốt thông số. Bản deploy chỉ có import/export JSON và tự lưu workspace trong trình duyệt.
 
@@ -58,3 +58,7 @@ The library is shared server data on a private Vercel Blob path via `/api/shared
 The native settings codec validates/applies snapshots. Library selection and name drafts are excluded from saved effects; Developer Handoff is recomputed from the selected effect. JSON Import/Export remains available in the fixed footer. Slow startup loading does not overwrite edits made while the request was pending; Refresh list fetches changes from other visitors.
 
 Server deployment requires a linked Blob store (`BLOB_READ_WRITE_TOKEN`, or Vercel OIDC plus `BLOB_STORE_ID`) only. `node scripts/build-beam-server.mjs <staging-directory>` builds the server function. Deploy both `.vercel/output/static` and `.vercel/output/functions` through `scripts/deploy-beam-with-server.mjs`; the older static-only deployment helper cannot host saved presets. Local `.env*` files must never enter static output or version snapshots.
+
+## Fluid tooltip
+
+Tools → Fluid tooltip ports the interactive sidebar from https://ppoinot.github.io/fluid-tooltip-playground/ with its original spring integration (mass 1, 240 Hz substeps), label roll/blur, shared/per-icon behavior, delay/skip window, keyboard/focus/touch and Replay. Heading/intro are omitted as requested. Toolcraft owns all tuning controls, graph inspection, history and JSON transfer. Each tool uses its own private Blob library/default; Beam data stays at node-beam/shared-default.json and Fluid uses fluid-tooltip/shared-default.json. JSON records the active tab, parameters and matching standalone HTML/renderer in Developer Handoff. Native JSON keeps hidden controls for a lossless round trip. Spring presets: Fluid 260/24, Snappy 520/40, Bouncy 320/13, Lazy 120/18.

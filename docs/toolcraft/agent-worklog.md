@@ -1,3 +1,11 @@
+## Fluid tooltip tab — 2026-10-29
+
+Active change: fluid-tooltip-20261029
+Request: Add Fluid tooltip tab, clone ppoinot reference without its heading/intro; same preset/default and JSON structure as Node Beam.
+Plan: Native Toolcraft tabs select product scene and conditional controls. Port original sidebar spring/state machine, width/label roll/blur, shared/per-icon, slow motion, delay/skip window, keyboard/focus/touch and Replay. Reuse existing shared preset CRUD with a separate Blob namespace per tool; retain all original Beam records. JSON includes active tool and exact procedural implementation. Native copy controls and spring response inspector replace reference tuning chrome. No iframe, no signed framework modifications.
+Reference study: source inspected from live HTML; original opened in embedded browser and its icon actions/control inventory inspected. No supplied timed video. Reference source: https://ppoinot.github.io/fluid-tooltip-playground/.
+Verification: In progress; focused tab/settings/interaction and export/browser checks plus production build/deploy. No measured performance or aggregate delivery.
+
 ## Editable palette gradients — 2026-10-20
 
 Active change: b06c5537-adb7-4db0-a12f-4bc0180377e0.

@@ -13,16 +13,19 @@ export function updateSharedDefault(patch: Partial<SharedDefaultStatus>) {
   status = { ...status, ...patch };
   for (const listener of listeners) listener();
 }
+let presetScope = 'beam';
+export function setPresetScope(tool: unknown) { const next=tool==='fluid'?'fluid':'beam'; if(next!==presetScope){presetScope=next;updateSharedDefault({library:null,loading:true,error:null});} }
 export type PresetMutation = { operation: string; id?: string | null; name?: string; settingsJson?: string; playing?: boolean };
 export type PresetServiceResult = { library: PresetLibrary; selectedId?: string | null };
 export async function sharedDefaultRequest(body?: PresetMutation): Promise<PresetServiceResult> {
+  const scope=presetScope;
   let serializedBody: string | null = null;
   if (body !== undefined) serializedBody = JSON.stringify(body);
   const options: RequestInit = {
     method: serializedBody === null ? 'GET' : 'POST', cache: 'no-store', signal: AbortSignal.timeout(12000),
     ...(serializedBody === null ? {} : { headers: { 'Content-Type': 'application/json' }, body: serializedBody }),
   };
-  const response: Response = await fetch('/api/shared-default', options);
+  const response: Response = await fetch('/api/shared-default?tool='+scope, options);
   const result: { library?: PresetLibrary; selectedId?: string | null; error?: string } = await response.json();
   if (result.library) validatePresetLibrary(result.library);
   if (!response.ok || !result.library) {
@@ -30,7 +33,7 @@ export async function sharedDefaultRequest(body?: PresetMutation): Promise<Prese
     failure.message = result.error ?? 'Saved presets are unavailable. Please retry.';
     throw failure;
   }
-  updateSharedDefault({ library: result.library, loading: false, error: null });
+  if(scope===presetScope) updateSharedDefault({ library: result.library, loading: false, error: null });
   return { library: result.library, selectedId: result.selectedId };
 }
 

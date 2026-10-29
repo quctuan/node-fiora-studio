@@ -1,3 +1,5 @@
+import { FluidInspector } from "./fluid-inspector";
+import { fluidHandoff } from "./fluid-handoff";
 import { useEffect, useMemo, useState } from "react";
 import { useToolcraftDispatch, useToolcraftSelector, useToolcraftTheme, useToolcraftValue, type ToolcraftCustomControlRendererProps, type ToolcraftPanelActionHandler } from "@/toolcraft/runtime/react";
 import { Button, toast, Toaster } from "@/toolcraft/ui";
@@ -12,8 +14,8 @@ export function BeamHandoffSync() {
   const looping = useToolcraftSelector(state => state.timeline.isLooping);
   const current = useToolcraftValue(beamHandoffTarget);
   const dispatch = useToolcraftDispatch();
-  const key = JSON.stringify([resolveBeamSettings(values), duration, looping]);
-  const document = useMemo(() => createBeamHandoff(values, duration, looping), [key]);
+  const key = JSON.stringify([values["studio.tool"], ...Object.entries(values).filter(([k])=>k.startsWith("fluid.")),resolveBeamSettings(values), duration, looping]);
+  const document = useMemo(() => values["studio.tool"] === "fluid" ? fluidHandoff(values) : createBeamHandoff(values, duration, looping), [key]);
   useEffect(() => {
     if (current !== document) dispatch({ type: "controls.setValue", target: beamHandoffTarget, value: document, history: "skip" });
   }, [current, document, dispatch]);
@@ -22,7 +24,11 @@ export function BeamHandoffSync() {
 
 const seconds = (value: number | null) => value === null ? "Off" : `${value.toFixed(3)} s`;
 
-export function BeamHandoffInspector({ state }: ToolcraftCustomControlRendererProps): React.JSX.Element {
+export function BeamHandoffInspector(props: ToolcraftCustomControlRendererProps): React.JSX.Element {
+ if(props.state.values["studio.tool"]==="fluid") return <FluidInspector {...props}/>;
+ return <BeamInspector {...props}/>;
+}
+function BeamInspector({ state }: ToolcraftCustomControlRendererProps): React.JSX.Element {
   const { resolvedTheme } = useToolcraftTheme();
   const [expanded, setExpanded] = useState(false);
   const settings = resolveBeamSettings(state.values);
@@ -68,6 +74,7 @@ function ParameterRow({ label, reading }: { label: string; reading: string }): R
 
 export const beamHandoffActionHandler: ToolcraftPanelActionHandler = async ({ action, state, reportProgress }) => {
   if (!["beam.copyHtml", "beam.copySpec"].includes(action.value)) return;
+  if(state.values["studio.tool"]==="fluid") {const doc=fluidHandoff(state.values);await navigator.clipboard.writeText(action.value==="beam.copyHtml"?doc.implementation.exampleHtml:JSON.stringify(doc,null,2));reportProgress(1);toast.success("Copied fluid tooltip");return;}
   const doc: BeamHandoff = createBeamHandoff(state.values, state.timeline.durationSeconds, state.timeline.isLooping);
   const html = action.value === "beam.copyHtml";
   reportProgress(0.25);

@@ -1,0 +1,1 @@
+export function mountFluid(root: HTMLElement, getSettings: () => {k:number;c:number;roll:number;blur:number;delay:number;skip:number;shared:boolean;slow:boolean}, styles: Record<string,string>): { replay():void;update():void;destroy():void };

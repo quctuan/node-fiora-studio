@@ -59,7 +59,7 @@ test("browser: fixed settings footer restores JSON without image export", async 
     return { byteLength: bytes.length, mediaType: "application/json", contentHash: createHash("sha256").update(bytes).digest("hex") };
   }, { requirementId: "settings.transfer" });
   const preset = await readPreset(download);
-  expect(download.suggestedFilename()).toBe("node-beam-preset.json");
+  expect(download.suggestedFilename()).toBe("effect-preset.json");
   expect(preset).toMatchObject({ appId: "node-beam-studio", source: "toolcraft-settings", version: 3 });
   expect(preset.values).toMatchObject({
     "beam.theme": "dark", "beam.shape": "circle", "beam.palette": "cyan", "beam.style": "neon",

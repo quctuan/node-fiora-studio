@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { applyToolcraftSettingsPayload, parseToolcraftSettingsPayload, useToolcraftDispatch, useToolcraftSelector, type ToolcraftCustomControlRendererProps, type ToolcraftPanelActionHandler } from '@/toolcraft/runtime/react';
 import { Button, ScrollFade, toast } from '@/toolcraft/ui';
-import { captureSharedSettings, getSharedDefaultStatus, loadSharedPresets, sharedDefaultRequest, sharedSettingsFingerprint, subscribeSharedDefault, updateSharedDefault, type SavedPreset } from './beam-shared-default';
+import { setPresetScope, captureSharedSettings, getSharedDefaultStatus, loadSharedPresets, sharedDefaultRequest, sharedSettingsFingerprint, subscribeSharedDefault, updateSharedDefault, type SavedPreset } from './beam-shared-default';
 import { presetNameTarget, sharedDefaultTarget } from './beam-shared-default-schema';
 import styles from './beam-shared-default.module.css';
 
 function applyPreset(state: ToolcraftCustomControlRendererProps['state'], dispatch: ToolcraftCustomControlRendererProps['dispatch'], preset: SavedPreset) {
   const settings = parseToolcraftSettingsPayload(state.schema, JSON.parse(preset.settingsJson));
   if (!settings) throw new Error('This preset is incompatible with this version.');
-  applyToolcraftSettingsPayload({ state, dispatch }, settings, [], true);
+  const tool=settings.values["studio.tool"]??"beam";
+  const values={...settings.values};
+  for(const [key,value] of Object.entries(state.values)) {
+    if((tool==="fluid" && key.startsWith("beam.") && !['beam.sharedDefault','beam.presetName','beam.developerHandoff'].includes(key)) || (tool!=="fluid" && key.startsWith("fluid."))) values[key]=value;
+  }
+  applyToolcraftSettingsPayload({ state, dispatch }, {...settings,values}, [], true);
   dispatch({ type: 'timeline.setPlaying', isPlaying: preset.playing });
   dispatch({ type: 'controls.setValue', target: sharedDefaultTarget, value: preset.id, history: 'skip' });
   dispatch({ type: 'controls.setValue', target: presetNameTarget, value: preset.name, history: 'skip' });
@@ -19,11 +24,13 @@ export function BeamSharedDefaultBootstrap() {
   const dispatch = useToolcraftDispatch();
   useEffect(() => {
     let active = true;
+    setPresetScope(latest.current.values["studio.tool"]);
     const initial = JSON.stringify([sharedSettingsFingerprint(latest.current), latest.current.values[sharedDefaultTarget], latest.current.values[presetNameTarget]]);
     void loadSharedPresets().then(({ library }) => {
       if (!active || initial !== JSON.stringify([sharedSettingsFingerprint(latest.current), latest.current.values[sharedDefaultTarget], latest.current.values[presetNameTarget]])) return;
       const preset = Object.values(library.presets).find(item => item.id === library.defaultPresetId && !item.deletedAt);
       if (preset) applyPreset(latest.current, dispatch, preset);
+      else {dispatch({type:"controls.setValue",target:sharedDefaultTarget,value:"",history:"skip"});dispatch({type:"controls.setValue",target:presetNameTarget,value:"",history:"skip"});}
     }).catch(() => { if (active) updateSharedDefault({ loading: false, error: 'Could not load saved presets. Your current settings are preserved.' }); });
     return () => { active = false; };
   }, [dispatch]);

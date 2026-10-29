@@ -5,7 +5,7 @@ import type {
 } from "./acceptance/types";
 import { appSchema } from "./app-schema";
 import { referenceTransportSeconds } from "./beam-reference";
-export { appControlSectionInventory } from "./beam-schema";
+export { studioInventory as appControlSectionInventory } from "./studio-inventory";
 
 const starterPersistenceSlices =
   appSchema.persistence.storage === "localStorage"
@@ -28,8 +28,8 @@ export const appTransferMode: ToolcraftTransferMode = {
 export const appProductReadiness: ToolcraftProductReadiness = {
   mode: "product",
   productName: "Node Beam Studio",
-  productSummary: "A visual editor for the gradient border and synchronized inner light of a generating node.",
-  requestedBehavior: "Edit Light/Dark appearance, workspace, node geometry, motion, palette, glow spread and softness, border width, and effect style with immediate preview. Inspect effective motion and optical parameters and export a developer document containing reference motion samples and the exact renderer.",
+  productSummary: "Native Toolcraft editors for Node Beam and Fluid tooltip, with separate shared preset libraries and matching developer JSON.",
+  requestedBehavior: "Edit Light/Dark appearance, workspace, node geometry, motion, palette, glow spread and softness, border width, and effect style with immediate preview. Inspect effective motion and optical parameters and export a developer document containing reference motion samples and the exact renderer. Switch to Fluid tooltip to tune the reference spring, labels, timing and interaction mode; save presets/defaults in its independent shared library and export its exact runnable implementation.",
   exportIntent: {
     image: {
       mode: "user-removed",
@@ -172,6 +172,14 @@ export const appAcceptance: readonly ToolcraftComponentAcceptance[] = [
     userAction: "Click both native copy commands and inspect the actual clipboard contents.",
     expectedObservable: "Clipboard receives self-contained executable HTML or the complete developer specification with success feedback.",
   },
+  ...([['studio.tool','tabs'],['fluid.shared','segmented'],['fluid.slow','switch'],['fluid.k','slider'],['fluid.c','slider'],['fluid.roll','slider'],['fluid.blur','slider'],['fluid.delay','slider'],['fluid.skip','slider']] as const).map(([target,componentType])=>({
+    id:target,target,kind:'control' as const,componentType,automated:true,
+    automatedTestName:'toolcraft owns both tabs and all tooltip controls',
+    browser:{file:'e2e/fluid-tooltip.spec.ts' as const,testName:'all fluid tuning values and both interaction modes reach JSON',budget:'standard' as const},
+    evidence:'exported-bytes' as const,fixture:'Fluid tooltip tab with native controls',
+    userAction:'Switch tools, edit the tooltip settings and export the current snapshot.',
+    expectedObservable:'The matching scene and native controls appear; the exported runnable tooltip contains the exact selected settings.',
+  })),
   ...controlRows.map(([target, componentType, userAction, expectedObservable, options]) => ({
     id: target, target, kind: "control" as const, componentType,
     automated: true, automatedTestName: `${target} has a canonical editable product contract`,

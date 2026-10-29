@@ -1,0 +1,9 @@
+import {appControlSectionInventory as beamInventory,beamSections} from './beam-schema';
+import {fluidSections} from './fluid-schema';
+import type {ToolcraftControlSectionInventoryEntry} from './acceptance/types';
+const common=beamSections.filter(s=>['beam-background','beam-shared-default','beam-handoff'].includes(s.id)).flatMap(s=>Object.values(s.controls).map(c=>c.target));
+export const studioInventory:readonly ToolcraftControlSectionInventoryEntry[]=[
+ {id:'studio-tool',title:'Tools',entityId:'effect-tool',entity:'Effect tool',targets:['studio.tool'],groupingReason:'Select the requested effect tab; each tab owns its controls and independent shared preset library.',finiteSelectors:[{target:'studio.tool',role:'branch',affectedTargets:common,reason:'Switches effect scene and native controls; saved presets and handoff bind to the active tool.',productMode:{request:{source:'user-message',messageRef:'fluid-tooltip-20261029',messageText:'Build tại trang này, thêm cho t 1 tab là Fluid tooltip',quote:'thêm cho t 1 tab là Fluid tooltip'},sharedTargets:common}}]},
+ ...beamInventory.map(section=>({...section,finiteSelectors:section.finiteSelectors.map(selector=>{const {productMode,...rest}=selector as typeof selector & {productMode?:unknown};return rest;})})),
+ ...fluidSections.map(section=>({id:section.id,title:section.title??section.id,entityId:section.id,entity:section.title??section.id,groupingReason:'Native controls tune one reference tooltip behavior; graph is a read-only spring response, not a second input.',targets:Object.values(section.controls).map(c=>c.target),finiteSelectors:Object.values(section.controls).filter(c=>['select','segmented','switch','checkbox'].includes(c.type)).map(c=>({target:c.target,role:'parameter' as const,reason:'Changes the selected tooltip response without changing other available controls.'}))})),
+];
