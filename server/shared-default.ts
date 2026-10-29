@@ -26,5 +26,6 @@ function handlerFor(pathname: string) { return createSharedDefaultHandler({
   },
  }); }
 const beam=handlerFor('node-beam/shared-default.json');
-const fluid=handlerFor('fluid-tooltip/shared-default.json');
+export const fluidDefaultHandler=handlerFor('fluid-tooltip/shared-default.json');
+const fluid=fluidDefaultHandler;
 export default function handler(...args: Parameters<typeof beam>){const [req]=args;return new URL(req.url??'/', 'https://local').searchParams.get('tool')==='fluid'?fluid(...args):beam(...args);}

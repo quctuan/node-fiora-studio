@@ -31,26 +31,12 @@
   z-index: 1;
   width: 30px;
   height: 30px;
-  border: 0;
   padding: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--glyph);
   display: grid;
   place-items: center;
   cursor: default;
-  transition: color .15s;
 }
-.item:hover, .item[aria-current="page"] { color: var(--glyph-hi); }
-.item:focus-visible { outline: 2px solid var(--glyph-hi); outline-offset: 1px; }
 .item svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.av {
-  width: 22px; height: 22px; border-radius: 50%;
-  display: grid; place-items: center;
-  font: 600 9px/1 var(--f-ui); letter-spacing: .02em; color: #fff;
-  background: linear-gradient(140deg, #d9a35c, #7c5a3a);
-  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .25);
-}
 .hl {
   position: absolute; left: 6px; top: 0; width: 30px; height: 30px;
   border-radius: 8px; background: var(--hl);
@@ -108,3 +94,5 @@
 .ghost:hover { background: rgba(0, 0, 0, .32); }
 .ghost:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
+
+.measure{position:absolute;visibility:hidden;pointer-events:none}.measure .tip-label{position:relative;display:inline-flex;}

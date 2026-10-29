@@ -1,0 +1,15 @@
+/* Product-specific emphasis for the existing native Toolcraft selection controls. */
+[data-toolcraft-control-target^="fluid."] [aria-pressed="true"],
+[data-toolcraft-control-target^="fluid."] [role="switch"][aria-checked="true"],
+[data-toolcraft-control-target="studio.tool"] [role="tab"][aria-selected="true"] {
+ background:#e92d96; color:#fff; border-color:#fa85c8;
+ box-shadow:inset 0 0 0 1px #ffffff40,0 0 0 1px #e92d9655;
+ font-weight:650;
+}
+[data-toolcraft-control-target^="fluid."] [aria-pressed="false"] {color:#c8cbd2;border-color:#ffffff20;}
+[data-toolcraft-control-target^="fluid."] button:focus-visible {outline:2px solid #fa85c8;outline-offset:3px;}
+
+.light [data-toolcraft-control-target^="fluid."] [aria-pressed="false"] {color:#505565;border-color:#22222225;}
+
+[role="option"][aria-selected="true"]{background:#e92d96;color:white;font-weight:650;}
+

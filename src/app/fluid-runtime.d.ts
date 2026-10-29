@@ -1,1 +1,4 @@
-export function mountFluid(root: HTMLElement, getSettings: () => {k:number;c:number;roll:number;blur:number;delay:number;skip:number;shared:boolean;slow:boolean}, styles: Record<string,string>): { replay():void;update():void;destroy():void };
+import type {FluidSettings} from './fluid-schema';
+export type FluidSnapshot={opacity:number;x:number;y:number;scale:number;width:number;activeY:number;active:number;cursorVisible:boolean;cursorIndex:number;labels:{id:number;index:number;opacity:number;y:number;blur:number}[]};
+export type FluidController={replay():void;enter(index:number,immediate?:boolean):void;leave(ms:number):void;activate(index:number):void;destroy():void};
+export function createFluidController(getSettings:()=>FluidSettings,emit:(snapshot:FluidSnapshot)=>void,widths:number[]):FluidController;

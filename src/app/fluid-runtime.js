@@ -1,23 +1,7 @@
-// Ported from https://ppoinot.github.io/fluid-tooltip-playground/; original spring and state machine.
-export function mountFluid(root, getSettings, styles) {
- const $ = selector => root.querySelector(selector);
- const abort = new AbortController();
- const listen=(element,event,handler)=>element.addEventListener(event,handler,{signal:abort.signal});
-  const DATA = [
-    { name: "Today", key: "1" }, { name: "Tasks", key: "2" }, { name: "Calendar", key: "3" },
-    { name: "Focus", key: "4" }, { name: "Settings", key: "5" }, { name: "John Doe", key: null },
-  ];
-  const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
-  const MOD = isMac ? "⌘" : "Ctrl ";
-  const H = 28, PAD = 10;
-
-  const P = { ...getSettings() };
-
-  const rail = $("#rail"), tip = $("#tip"), hl = $("#hl"), cursor = $("#cursor");
-  const items = [...rail.querySelectorAll("." + styles.item)];
-  let centers = [];
-  const measure = () => { centers = items.map((el) => el.offsetTop + el.offsetHeight / 2); };
-
+// Reference spring/state machine shared by the React preview and standalone export.
+/** @param {()=>import('./fluid-schema').FluidSettings} getSettings @param {(snapshot:import('./fluid-runtime').FluidSnapshot)=>void} emit @param {number[]} widths */
+export function createFluidController(getSettings,emit,widths){
+ const P={...getSettings()};const H=28;const centers=[21,59,97,135,173,211];let cursorVisible=false,cursorIndex=5;
   class Spring {
     constructor(x) { this.x = x; this.t = x; this.v = 0; }
     snap(x) { this.x = this.t = x; this.v = 0; }
@@ -25,41 +9,17 @@ export function mountFluid(root, getSettings, styles) {
     done(eps) { return Math.abs(this.x - this.t) < eps && Math.abs(this.v) < eps * 10; }
   }
 
-  const reduceQuery = matchMedia("(prefers-reduced-motion: reduce)");
-  // The motion is what this page shows, so it animates even with Reduce Motion on (the panel offers a way out)
+
+
   let reduce = false;
 
   const y = new Spring(0), w = new Spring(0), vis = new Spring(0), aY = new Spring(0);
   let labels = [];
   let cur = -1, active = 0, shown = false, hiddenAt = -1e9, openT = 0, hideT = 0, pending = 0;
 
-  // ---------- labels ----------
-  function labelEl(i) {
-    const d = DATA[i];
-    const el = document.createElement("span");
-    el.className = styles["tip-label"];
-    const n = document.createElement("span");
-    n.textContent = d.name;
-    el.append(n);
-    if (d.key) { const k = document.createElement("kbd"); k.textContent = MOD + d.key; el.append(k); }
-    tip.append(el);
-    return el;
-  }
-  function replaceLabel(i) {
-    labels.forEach((l) => l.el.remove());
-    const el = labelEl(i);
-    labels = [{ el, p: new Spring(0), out: false }];
-    return el.offsetWidth + PAD * 2;
-  }
-  function rollLabel(i, dir) {
-    labels.forEach((l) => { if (!l.out) { l.out = true; l.p.t = -dir; } });
-    const el = labelEl(i);
-    const p = new Spring(dir);
-    p.t = 0;
-    labels.push({ el, p, out: false });
-    return el.offsetWidth + PAD * 2;
-  }
-
+  let labelSequence=0;
+  function replaceLabel(i){labels=[{id:++labelSequence,index:i,p:new Spring(0),out:false}];return widths[i]+20;}
+  function rollLabel(i,dir){labels.forEach(l=>{if(!l.out){l.out=true;l.p.t=-dir;}});const p=new Spring(dir);p.t=0;labels.push({id:++labelSequence,index:i,p,out:false});return widths[i]+20;}
   // ---------- state machine ----------
   function moveTo(i) {
     vis.t = 1;
@@ -115,8 +75,7 @@ export function mountFluid(root, getSettings, styles) {
   function setActive(i) {
     if (i > 4) return;
     active = i;
-    items.forEach((el, j) => el.toggleAttribute("aria-current", j === i));
-    items[i].setAttribute("aria-current", "page");
+
     if (reduce) aY.snap(centers[i]); else aY.t = centers[i];
     kick();
   }
@@ -148,86 +107,34 @@ export function mountFluid(root, getSettings, styles) {
     if (settled) { raf = 0; return; }
     raf = requestAnimationFrame(frame);
   }
-  function render() {
-    const vv = Math.min(1, Math.max(0, vis.x));
-    tip.style.opacity = vv.toFixed(3);
-    tip.style.transform = `translate3d(${(-5 * (1 - vv)).toFixed(2)}px, ${(y.x - H / 2).toFixed(2)}px, 0) scale(${(0.95 + 0.05 * vv).toFixed(4)})`;
-    tip.style.width = Math.max(0, w.x).toFixed(2) + "px";
-    hl.style.transform = `translate3d(0, ${(aY.x - 15).toFixed(2)}px, 0)`;
-    labels = labels.filter((l) => {
-      if (l.out && (Math.abs(l.p.x) >= 0.97 || l.p.done(0.002))) { l.el.remove(); return false; }
-      return true;
-    });
-    labels.forEach((l) => {
-      const a = Math.abs(l.p.x);
-      l.el.style.opacity = Math.max(0, 1 - a).toFixed(3);
-      l.el.style.transform = `translate3d(0, ${(l.p.x * P.roll).toFixed(2)}px, 0)`;
-      l.el.style.filter = P.blur > 0 && a > 0.002 ? `blur(${(Math.min(1, a) * P.blur).toFixed(2)}px)` : "none";
-    });
+  function render(){
+    labels=labels.filter(l=>!(l.out&&(Math.abs(l.p.x)>=.97||l.p.done(.002))));
+    const vv=Math.min(1,Math.max(0,vis.x));
+    emit({opacity:vv,x:-5*(1-vv),y:y.x-H/2,scale:.95+.05*vv,width:Math.max(0,w.x),activeY:aY.x-15,active,cursorVisible,cursorIndex,labels:labels.map(l=>({id:l.id,index:l.index,opacity:Math.max(0,1-Math.abs(l.p.x)),y:l.p.x*P.roll,blur:P.blur>0&&Math.abs(l.p.x)>.002?Math.min(1,Math.abs(l.p.x))*P.blur:0}))});
   }
-
-  // ---------- input ----------
-  const indexAt = (clientY) => {
-    const bounds=rail.getBoundingClientRect();
-    const yy = (clientY - bounds.top)/(bounds.height/rail.offsetHeight);
-    let best = 0, bd = Infinity;
-    centers.forEach((c, i) => { const d = Math.abs(c - yy); if (d < bd) { bd = d; best = i; } });
-    return best;
-  };
-  listen(rail,"pointerenter", (e) => { if (e.pointerType === "mouse") { stopDemo(); hover(indexAt(e.clientY), false); } });
-  listen(rail,"pointermove", (e) => {
-    if (e.pointerType !== "mouse" && e.buttons === 0) return;
-    stopDemo();
-    hover(indexAt(e.clientY), e.pointerType !== "mouse");
-  });
-  listen(rail,"pointerdown", (e) => {
-    stopDemo();
-    if (e.pointerType !== "mouse") hover(indexAt(e.clientY), true);
-  });
-  listen(rail,"pointerleave", (e) => scheduleHide(e.pointerType === "mouse" ? 80 : 900));
-  listen(rail,"pointerup", (e) => { if (e.pointerType !== "mouse") scheduleHide(900); });
-  items.forEach((el, i) => listen(el,"click", () => setActive(i)));
-  listen(rail,"focusin", (e) => {
-    const el = e.target.closest("." + styles.item);
-    if (el && el.matches(":focus-visible")) { stopDemo(); hover(+el.dataset.i, true); }
-  });
-  listen(rail,"focusout", (e) => { if (!rail.contains(e.relatedTarget)) scheduleHide(80); });
-  listen(root,"keydown", (e) => {
-    if (e.target.closest && e.target.closest("input, textarea, select")) return;
-    const n = parseInt(e.key, 10);
-    if (n >= 1 && n <= 5) {
-      if (e.metaKey || e.ctrlKey) e.preventDefault();
-      stopDemo();
-      setActive(n - 1);
-      hover(n - 1, true);
-      scheduleHide(1000);
-    }
-  });
-
   // ---------- demo (the clip's path along the rail) ----------
   let demoT = [];
   function stopDemo() {
     if (!demoT.length) return;
     demoT.forEach(clearTimeout);
     demoT = [];
-    cursor.classList.remove(styles.on);
+    cursorVisible=false;render();
   }
   function placeCursor(i) {
-    cursor.style.transform = `translate(${21 + 3}px, ${centers[i] + 3}px)`;
+    cursorIndex=i;render();
   }
   function playDemo() {
     stopDemo();
     const f = P.slow ? 5 : 1;
     const path = [[5, 0], [4, 600], [0, 1250], [1, 1600], [2, 1900], [3, 2200], [4, 2500], [5, 2850], [0, 3600]];
     placeCursor(5);
-    cursor.classList.add(styles.on);
+    cursorVisible=true;render();
     path.forEach(([i, at]) => demoT.push(setTimeout(() => { placeCursor(i); hover(i, true); }, at * f)));
-    demoT.push(setTimeout(() => { cursor.classList.remove(styles.on); demoT = []; }, 4400 * f));
+    demoT.push(setTimeout(() => { cursorVisible=false;render(); demoT = []; }, 4400 * f));
   }
 
 
 
-  measure(); aY.snap(centers[0]); open(0); vis.snap(1); render();
-  const resize = new ResizeObserver(() => {measure(); if(cur>=0)y.snap(centers[cur]);aY.snap(centers[active]);render();}); resize.observe(rail);
-  return { replay: playDemo, update() { Object.assign(P,getSettings()); kick(); }, destroy() { abort.abort();labels.forEach(l=>l.el.remove());cancelAnimationFrame(raf);clearTimeout(openT);clearTimeout(hideT);demoT.forEach(clearTimeout);resize.disconnect(); } };
+  aY.snap(centers[0]);open(0);vis.snap(1);render();
+  return {replay:playDemo,enter(i,immediate=false){stopDemo();hover(i,immediate);},leave:scheduleHide,activate:setActive,destroy(){cancelAnimationFrame(raf);clearTimeout(openT);clearTimeout(hideT);demoT.forEach(clearTimeout);}};
 }

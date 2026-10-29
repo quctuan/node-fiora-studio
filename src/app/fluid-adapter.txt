@@ -1,0 +1,18 @@
+// Standalone HTML adapter. The Toolcraft preview uses React and the same physics controller.
+function mountFluid(root,getSettings,styles){
+ const names=['Today','Tasks','Calendar','Focus','Settings','John Doe'];const shortcut=/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Ctrl ';
+ const rail=root.querySelector('#rail'),tip=root.querySelector('#tip'),hl=root.querySelector('#hl'),cursor=root.querySelector('#cursor');
+ const items=[...rail.querySelectorAll('button')],pool=[...tip.querySelectorAll('[data-fluid-label]')];
+ const widths=names.map((name,i)=>{const el=pool[i];el.firstElementChild.textContent=name;el.querySelector('kbd').textContent=i<5?shortcut+(i+1):'';el.style.display='flex';const width=el.offsetWidth;el.style.display='none';return width;});
+ const controller=createFluidController(getSettings,s=>{
+  tip.style.opacity=s.opacity;tip.style.width=s.width+'px';tip.style.transform=`translate3d(${s.x}px,${s.y}px,0) scale(${s.scale})`;hl.style.transform=`translate3d(0,${s.activeY}px,0)`;
+  items.forEach((item,i)=>{if(i===s.active)item.setAttribute('aria-current','page');else item.removeAttribute('aria-current');});
+  pool.forEach(el=>{el.style.display='none';el.firstElementChild.textContent='';el.querySelector('kbd').textContent='';});
+  s.labels.forEach((label,i)=>{const el=pool[i%pool.length];el.firstElementChild.textContent=names[label.index];el.querySelector('kbd').textContent=label.index<5?shortcut+(label.index+1):'';el.style.display='flex';el.style.opacity=label.opacity;el.style.transform=`translate3d(0,${label.y}px,0)`;el.style.filter=label.blur?`blur(${label.blur}px)`:'none';});
+  cursor.classList.toggle(styles.on,s.cursorVisible);cursor.style.transform=`translate(24px,${24+s.cursorIndex*38}px)`;
+ },widths);
+ const abort=new AbortController();const listen=(el,event,fn)=>el.addEventListener(event,fn,{signal:abort.signal});
+ items.forEach((item,i)=>{listen(item,'pointerenter',()=>controller.enter(i));listen(item,'pointerdown',e=>{if(e.pointerType!=='mouse')controller.enter(i,true);});listen(item,'pointerleave',e=>controller.leave(e.pointerType==='mouse'?80:900));listen(item,'click',()=>controller.activate(i));listen(item,'focus',()=>{if(item.matches(':focus-visible'))controller.enter(i,true);});listen(item,'blur',()=>controller.leave(80));});
+ listen(root,'keydown',e=>{const n=Number(e.key);if(n>=1&&n<=5){if(e.metaKey||e.ctrlKey)e.preventDefault();controller.activate(n-1);controller.enter(n-1,true);controller.leave(1000);}});
+ return {replay:controller.replay,destroy(){abort.abort();controller.destroy();}};
+}

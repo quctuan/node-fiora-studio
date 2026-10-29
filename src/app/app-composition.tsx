@@ -1,3 +1,5 @@
+import {useEffect,useState} from "react";
+import {useToolcraftDispatch} from "@/toolcraft/runtime/react";
 import {fluidSpringControl} from "./fluid-schema";
 import {FluidSpringPlot} from "./fluid-inspector";
 import { FluidCanvas, replayFluid } from "./fluid-canvas";
@@ -14,7 +16,7 @@ import { beamHandoffControl } from "./beam-handoff-schema";
 import { BeamPresetLibrary, BeamSharedDefaultBootstrap, sharedDefaultActionHandler } from "./beam-shared-default-ui";
 import { sharedDefaultControl } from "./beam-shared-default-schema";
 
-function StudioScene(){const tool=useToolcraftValue("studio.tool");return <><BeamSharedDefaultBootstrap key={String(tool)}/><BeamHandoffSync/>{tool==="fluid"?<FluidCanvas/>:<BeamCanvas/>}</>;}
+function StudioScene(){const tool=useToolcraftValue("studio.tool");const dispatch=useToolcraftDispatch();const [ready,setReady]=useState(false);useEffect(()=>{if(new URLSearchParams(location.search).get("embedded")==="fluid")dispatch({type:"controls.setValue",target:"studio.tool",value:"fluid",history:"skip"});setReady(true);},[dispatch]);if(!ready)return null;return <><BeamSharedDefaultBootstrap key={String(tool)}/><BeamHandoffSync/>{tool==="fluid"?<FluidCanvas/>:<BeamCanvas/>}</>;}
 
 export const appComposition = composeToolcraftApp(withSettingsFooter(appSchema), {
   scene: {

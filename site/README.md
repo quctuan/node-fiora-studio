@@ -25,3 +25,7 @@ Node motion now invokes its existing Fit action after the iframe is ready and vi
 ## Glass navigation2.1.3
 
 The shared header is a fixed overlay with a translucent gradient,20px backdrop blur and saturation. The canvas now fills100dvh behind it, reclaiming the previous84px reserved header strip. Compact Annotation layouts reserve their internal control row to avoid overlapping the floating menu. Tab switching, Fit and Annotation/Back were verified locally.
+
+## Fluid tooltip 2.2.0
+
+Third menu tab `?tab=fluid` mounts the native Toolcraft editor, built from current `src/` and `server/`. Original Beam assets and preset API remain byte-for-byte preserved. Fluid uses `/api/fluid-default`, a separate private Blob path, and its own local workspace identity; JSON keeps the canonical settings format and includes runnable HTML with the selected spring parameters. The reference heading/intro are omitted. Native Toolcraft controls, independent shared presets/default and exact developer export remain available.

@@ -1,0 +1,4 @@
+/* The sidebar is the visual artifact being previewed. */
+#stage #rail button{border:0;border-radius:8px;background:transparent;color:#aec5dc;box-shadow:none;transition:color .15s;}
+#stage #rail button:hover,#stage #rail button[aria-current="page"]{color:white;}
+#stage #rail button:focus-visible{outline:2px solid white;outline-offset:1px;}

@@ -25,10 +25,10 @@ export function BeamHandoffSync() {
 const seconds = (value: number | null) => value === null ? "Off" : `${value.toFixed(3)} s`;
 
 export function BeamHandoffInspector(props: ToolcraftCustomControlRendererProps): React.JSX.Element {
- if(props.state.values["studio.tool"]==="fluid") return <FluidInspector {...props}/>;
- return <BeamInspector {...props}/>;
+ if(props.state.values["studio.tool"]==="fluid") return <FluidInspector state={props.state}/>;
+ return <BeamInspector state={props.state}/>;
 }
-function BeamInspector({ state }: ToolcraftCustomControlRendererProps): React.JSX.Element {
+function BeamInspector({ state }: Pick<ToolcraftCustomControlRendererProps,"state">): React.JSX.Element {
   const { resolvedTheme } = useToolcraftTheme();
   const [expanded, setExpanded] = useState(false);
   const settings = resolveBeamSettings(state.values);

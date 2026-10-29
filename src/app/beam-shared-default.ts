@@ -25,7 +25,7 @@ export async function sharedDefaultRequest(body?: PresetMutation): Promise<Prese
     method: serializedBody === null ? 'GET' : 'POST', cache: 'no-store', signal: AbortSignal.timeout(12000),
     ...(serializedBody === null ? {} : { headers: { 'Content-Type': 'application/json' }, body: serializedBody }),
   };
-  const response: Response = await fetch('/api/shared-default?tool='+scope, options);
+  const response: Response = await fetch(scope==='fluid'?'/api/fluid-default':'/api/shared-default', options);
   const result: { library?: PresetLibrary; selectedId?: string | null; error?: string } = await response.json();
   if (result.library) validatePresetLibrary(result.library);
   if (!response.ok || !result.library) {

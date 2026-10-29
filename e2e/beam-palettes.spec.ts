@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./toolcraft-product-test";
 import { beamPaletteGradientTargets } from "../src/app/beam-types";
 import { beamSelector, openBeamProof, selectBeamValue } from "./beam-ui-helpers";
 
